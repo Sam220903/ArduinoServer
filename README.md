@@ -6,3 +6,21 @@ Para ejecutar el código arduino, debe contar con un sensor controlado por una t
 
 ### App.py
 Para ejecutar la app desarrollada en Python - Flask, debe seguir los siguientes pasos.
+
+* Crear un entorno virtual de Python
+´´´
+bash
+python -m venv .venv
+´´´
+
+* Activar el entorno virtual
+´´´
+bash
+.venv/Scripts/activate
+´´´
+
+* Instalar los requerimientos
+´´´
+bash
+pip install -r requirements.txt
+´´´
