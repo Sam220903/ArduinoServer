@@ -13,9 +13,9 @@
 #define PH_PIN  A3        // Pin del sensor de pH
 
 DHT dht(DHTPIN, DHT11);
-const char* ssid = "";           // Reemplaza con el SSID de tu red
-const char* password = "";   // Reemplaza con la contraseña de tu red
-const char* server = "";   // IP pública o nombre de dominio de tu servidor
+const char* ssid = "INFINITUM5DCB";           // Reemplaza con el SSID de tu red
+const char* password = "9rBYnAsey9";   // Reemplaza con la contraseña de tu red
+const char* server = "ec2-3-14-69-183.us-east-2.compute.amazonaws.com";   // IP pública o nombre de dominio de tu servidor
 
 int status = WL_IDLE_STATUS;
 WiFiClient client;  // Crear cliente WiFi
@@ -86,22 +86,28 @@ void loop() {
   Serial.print(pH);
   Serial.println(" pH");
 
-  // Enviar datos al servidor
-  if (client.connect(server, 80)) {  
+  // Enviar datos al servidor para cada sensor
+  enviarDatos(1, soil_read);       // Sensor de Humedad de Suelo (ID: 1)
+  enviarDatos(2, h);               // Sensor de Humedad del Aire (ID: 2)
+  enviarDatos(3, light_percentage);// Sensor de Luz (ID: 3)
+  enviarDatos(4, pH);              // Sensor de pH (ID: 4)
+  enviarDatos(5, t);               // Sensor de Temperatura (ID: 5)
+
+  delay(600000);  // Enviar datos cada minuto (600000 ms = 10 min)
+}
+
+void enviarDatos(int sensorId, float valor) {
+  if (client.connect(server, 8080)) {  // Conectar al servidor en el puerto 8080
     Serial.println("Conectado al servidor");
 
-    // Crear datos en formato JSON
-    String jsonData = "{\"temperature_sensor\": " + String(t, 2) + 
-                      ", \"humidity_sensor\": " + String(h, 2) +
-                      ", \"sm_sensor\": " + String(soil_read) + 
-                      ", \"light_sensor\": " + String(light_percentage) + 
-                      ", \"ph_sensor\": " + String(pH, 2) + "}";
+    // Crear datos en formato JSON para cada sensor
+    String jsonData = "{\"sensor\": {\"id\": " + String(sensorId) + "}, \"stats\": " + String(valor, 2) + "}";
 
     Serial.println(jsonData);
 
     // Enviar solicitud HTTP POST
-    client.println("POST /datos HTTP/1.1");
-    client.println("Host: 127.0.0.1");
+    client.println("POST /api/data/add HTTP/1.1");  // Nueva ruta de la API
+    client.println("Host: " + String(server));      // Cambia a la dirección del servidor
     client.println("Content-Type: application/json");
     client.print("Content-Length: ");
     client.println(jsonData.length());
@@ -118,6 +124,5 @@ void loop() {
   } else {
     Serial.println("Error al conectarse al servidor");
   }
-
-  delay(5000);  // Enviar datos cada 5 segundos
 }
+
